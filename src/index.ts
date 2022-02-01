@@ -66,7 +66,7 @@ const relativePaths = (packages: Record<string, any>, root: string, base: string
   packages
 ).reduce((
   updated, [key, value]
-) => ({ ...updated, [key]: typeof value === 'string' ? value.replace(root, base) : relativePaths(updated, root, base) }), [])
+) => ({ ...updated, [key]: typeof value === 'string' ? value.replace(root, base) : relativePaths(value, root, base) }), [])
 
 
 export async function recursivelyCheckLicenses(cliArguments: CliArguments): Promise<{ message: string }> {

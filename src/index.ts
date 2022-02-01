@@ -62,17 +62,11 @@ const parseErrors = (packages, whiteListRegex = [], excluded = []) => Object.ent
   return withErrors
 }, [])
 
-const relativePaths = (packages: Record<string, Record<string, string>>, root: string, base: string) => Object.entries(
+const relativePaths = (packages: Record<string, any>, root: string, base: string) => Object.entries(
   packages
-  ).reduce((
-    updated, [key, { path, licenseFile, ...current }]
-) => ({
-  ...updated,
-  [key]: {
-    ...current,
-    path: path.replace(root, base),
-    licenseFile: path.replace(root, base)
-  } }))
+).reduce((
+  updated, [key, value]
+) => ({ ...updated, [key]: typeof value === 'string' ? value.replace(root, base) : relativePaths(updated) })
 
 
 export async function recursivelyCheckLicenses(cliArguments: CliArguments): Promise<{ message: string }> {

@@ -7,7 +7,8 @@ export enum ArgsEnum {
   a = 'allowOnly',
   t = 'target',
   e = 'excluded',
-  c = 'ci'
+  c = 'ci',
+  d = 'direct'
 }
 
 export type CliArguments = Record<ArgsEnum, string>
@@ -16,14 +17,16 @@ export const argDefaults: CliArguments = {
   allowOnly: '',
   target: '',
   excluded: '',
-  ci: ''
+  ci: '',
+  direct: 'true'
 }
 
 export const argDescriptions: CliArguments = {
   allowOnly: 'text file with list of whitelisted licenses',
   target: 'output filename for json',
   excluded: 'packages to exclude',
-  ci: 'if true then check created file against existing file'
+  ci: 'if true then check created file against existing file',
+  direct: 'if true then only check directly used dependencies'
 }
 
 const getAllPackageDirs = (dirPath, arrayOfFiles = []) => {
@@ -74,6 +77,7 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
   const base = root.split('/').pop()
   const whiteList = cliArguments.allowOnly ? JSON.parse(await loadFile(join(root, cliArguments.allowOnly))) : []
   const excluded = cliArguments.excluded ? JSON.parse(await loadFile(join(root, cliArguments.excluded))) : []
+  const direct = cliArguments.direct !== 'false';
   const out = join(root, cliArguments.target || 'package-license.json')
   const whiteListRegEx = whiteList.map(license => new RegExp(license, 'i'))
   const ciMode = !!cliArguments.ci
@@ -83,7 +87,7 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
   const results = await packageDirs.reduce(async (_combined, start) => new Promise(async (resolve) => {
     const combined = await _combined;
 
-    init({ start }, (err, packages) => {
+    init({ start, direct }, (err, packages) => {
       const packageErrors = whiteList.length && parseErrors(packages, whiteListRegEx, excluded)
       if (err) {
         console.error(`Some error occurred while processing ${start}`)

@@ -62,9 +62,22 @@ const parseErrors = (packages, whiteListRegex = [], excluded = []) => Object.ent
   return withErrors
 }, [])
 
+const relativePaths = (packages: Record<string, Record<string, string>>, root: string, base: string) => Object.entries(
+  packages
+  ).reduce((
+    updated, [key, { path, licenseFile, ...current }]
+) => ({
+  ...updated,
+  [key]: {
+    ...current,
+    path: path.replace(root, base),
+    licenseFile: path.replace(root, base)
+  } }))
+
 
 export async function recursivelyCheckLicenses(cliArguments: CliArguments): Promise<{ message: string }> {
   const root = process.cwd()
+  const base = root.split('/').pop()
   const whiteList = cliArguments.allowOnly ? JSON.parse(await loadFile(join(root, cliArguments.allowOnly))) : []
   const excluded = cliArguments.excluded ? JSON.parse(await loadFile(join(root, cliArguments.excluded))) : []
   const out = join(root, cliArguments.target || 'package-license.json')
@@ -86,7 +99,7 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
         packageErrors.forEach(error => console.error(error))
         exit(1)
       } else {
-        combined[join(start.replace(root, ''), '/')] = packages
+        combined[join(start.replace(root, ''), '/')] = relativePaths(packages, root, base)
         resolve(combined)
       }
     })

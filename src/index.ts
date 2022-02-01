@@ -6,7 +6,8 @@ import { exit } from 'process';
 export enum ArgsEnum {
   a = 'allowOnly',
   t = 'target',
-  e = 'excluded'
+  e = 'excluded',
+  c = 'ci'
 }
 
 export type CliArguments = Record<ArgsEnum, string>
@@ -14,13 +15,15 @@ export type CliArguments = Record<ArgsEnum, string>
 export const argDefaults: CliArguments = {
   allowOnly: '',
   target: '',
-  excluded: ''
+  excluded: '',
+  ci: ''
 }
 
 export const argDescriptions: CliArguments = {
   allowOnly: 'text file with list of whitelisted licenses',
   target: 'output filename for json',
-  excluded: 'packages to exclude'
+  excluded: 'packages to exclude',
+  ci: 'if true then check created file against existing file'
 }
 
 const getAllPackageDirs = (dirPath, arrayOfFiles = []) => {
@@ -66,6 +69,7 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
   const excluded = cliArguments.excluded ? JSON.parse(await loadFile(join(root, cliArguments.excluded))) : []
   const out = join(root, cliArguments.target || 'package-license.json')
   const whiteListRegEx = whiteList.map(license => new RegExp(license, 'i'))
+  const ciMode = !!cliArguments.ci
 
   const packageDirs = getAllPackageDirs(root)
 
@@ -89,14 +93,26 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
 
   }), Promise.resolve({}));
 
-  await new Promise<void>((resolve) => {
-    writeFile(out, JSON.stringify(results, null, 4), (err) => {
-      if (err) {
-        console.error(`some error when writing to ${out}`)
+  await new Promise<void>(async (resolve) => {
+    const resultJSON = JSON.stringify(results, null, 4)
+    if (ciMode) {
+      const existing = await loadFile(out)
+      if (existing === resultJSON) {
+        console.log('Licenses unchanged')
+      } else {
+        console.error('Licenses changed, need to run recursively-check-licenses before merging')
         exit(1)
       }
-      resolve()
-    })
+
+    } else {
+      writeFile(out, resultJSON, (err) => {
+        if (err) {
+          console.error(`some error when writing to ${out}`)
+          exit(1)
+        }
+        resolve()
+      })
+    }
   })
 
   return { message: `Saved license info to ${out}` }

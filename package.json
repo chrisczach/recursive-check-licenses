@@ -1,0 +1,30 @@
+{
+  "name": "recursive-check-licenses",
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/chrisczach/recursive-check-licenses"
+  },
+  "main": "./dist/index.js",
+  "bin": "./dist/cli.js",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "dev": "ts-node ./src/cli.ts",
+    "clean": "rimraf ./dist/ ./exec/",
+    "build": "npm run clean && tsc",
+    "bundle": "npm run build && pkg . --out-dir ./exec/"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.13",
+    "pkg": "^5.5.2",
+    "rimraf": "^2.6.3",
+    "ts-node": "^8.3.0",
+    "typescript": "^4.5.5"
+  },
+  "dependencies": {
+    "commander": "^8.3.0",
+    "license-checker": "^25.0.1"
+  }
+}

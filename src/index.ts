@@ -77,7 +77,7 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
   const base = root.split('/').pop()
   const whiteList = cliArguments.allowOnly ? JSON.parse(await loadFile(join(root, cliArguments.allowOnly))) : []
   const excluded = cliArguments.excluded ? JSON.parse(await loadFile(join(root, cliArguments.excluded))) : []
-  const direct = cliArguments.direct !== 'false';
+  const direct = cliArguments.direct === 'false' ? Infinity : 0;
   const out = join(root, cliArguments.target || 'package-license.json')
   const whiteListRegEx = whiteList.map(license => new RegExp(license, 'i'))
   const ciMode = !!cliArguments.ci

@@ -111,8 +111,15 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
       if (existing === resultJSON) {
         console.log('Licenses unchanged')
       } else {
-        console.error('Licenses changed, need to run recursively-check-licenses before merging')
-        exit(1)
+        const ciOut = `ci-${out}`
+        writeFile(ciOut, resultJSON, (err) => {
+          console.error('Licenses changed, need to run recursively-check-licenses before merging')
+          if (err) {
+            console.error(`some error when writing to artifact to ${ciOut}`)
+            exit(1)
+          }
+          resolve()
+        })
       }
 
     } else {

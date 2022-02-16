@@ -111,7 +111,7 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
       if (existing === resultJSON) {
         console.log('Licenses unchanged')
       } else {
-        const ciOut = `ci-${out}`
+        const ciOut = join(root, `ci-${cliArguments.target || 'package-license.json'}`)
         writeFile(ciOut, resultJSON, (err) => {
           console.error('Licenses changed, need to run recursively-check-licenses before merging')
           if (err) {

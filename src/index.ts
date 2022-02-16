@@ -2,6 +2,7 @@ import { readFile, readdirSync, statSync, writeFile } from 'fs'
 import { join } from 'path'
 import { init } from 'license-checker';
 import { exit } from 'process';
+import { exec } from 'child_process'
 
 export enum ArgsEnum {
   a = 'allowOnly',
@@ -86,6 +87,8 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
 
   const results = await packageDirs.reduce(async (_combined, start) => new Promise(async (resolve) => {
     const combined = await _combined;
+  
+    await new Promise(resolve => exec(`npm install --prefix ${start}`, resolve))
 
     init({ start, direct }, (err, packages) => {
       const packageErrors = whiteList.length && parseErrors(packages, whiteListRegEx, excluded)
@@ -104,6 +107,7 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
 
   }), Promise.resolve({}));
 
+  let message = `Saved license info to ${out}`
   await new Promise<void>(async (resolve) => {
     const resultJSON = JSON.stringify(results, null, 4)
     if (ciMode) {
@@ -111,14 +115,14 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
       if (existing === resultJSON) {
         console.log('Licenses unchanged')
       } else {
+        console.error('Licenses changed, need to run recursively-check-licenses before merging')
         const ciOut = join(root, `ci-${cliArguments.target || 'package-license.json'}`)
+        message = `Artifact generated at ${ciOut}`
         writeFile(ciOut, resultJSON, (err) => {
-          console.error('Licenses changed, need to run recursively-check-licenses before merging')
           if (err) {
             console.error(`some error when writing to artifact to ${ciOut}`)
-            exit(1)
           }
-          resolve()
+          exit(1)
         })
       }
 
@@ -133,5 +137,5 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
     }
   })
 
-  return { message: `Saved license info to ${out}` }
+  return { message }
 }

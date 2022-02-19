@@ -87,7 +87,7 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
 
   const results = await packageDirs.reduce(async (_combined, start) => new Promise(async (resolve) => {
     const combined = await _combined;
-  
+
     await new Promise(resolve => exec(`npm install --prefix ${start}`, resolve))
 
     init({ start, direct }, (err, packages) => {
@@ -112,7 +112,7 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
     const resultJSON = JSON.stringify(results, null, 4)
     if (ciMode) {
       const existing = await loadFile(out)
-      if (existing === resultJSON) {
+      if (existing.trim() === resultJSON.trim()) {
         console.log('Licenses unchanged')
       } else {
         console.error('Licenses changed, need to run recursively-check-licenses before merging')

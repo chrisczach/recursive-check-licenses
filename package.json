@@ -1,6 +1,6 @@
 {
   "name": "recursive-check-licenses",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "repository": {
     "type": "git",
     "url": "git://github.com/chrisczach/recursive-check-licenses"

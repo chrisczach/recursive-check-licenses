@@ -112,7 +112,8 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
     const resultJSON = JSON.stringify(results, null, 4)
     if (ciMode) {
       const existing = await loadFile(out)
-      if (existing.trim() === resultJSON.trim()) {
+      const newLines = /^\s+|\s+$/g
+      if (existing.replace(newLines, '') === resultJSON.replace(newLines, '')) {
         console.log('Licenses unchanged')
       } else {
         console.error('Licenses changed, need to run recursively-check-licenses before merging')

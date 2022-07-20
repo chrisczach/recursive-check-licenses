@@ -88,7 +88,7 @@ export async function recursivelyCheckLicenses(cliArguments: CliArguments): Prom
   const results = await packageDirs.reduce(async (_combined, start) => new Promise(async (resolve) => {
     const combined = await _combined;
 
-    await new Promise(resolve => exec(`npm install --prefix ${start}`, resolve))
+    await new Promise(resolve => exec(`npm ci --prefix ${start}`, resolve))
 
     init({ start, direct }, (err, packages) => {
       const packageErrors = whiteList.length && parseErrors(packages, whiteListRegEx, excluded)
